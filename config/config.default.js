@@ -17,11 +17,11 @@ module.exports = appInfo => {
 
   return {
     appId,
-    appTitle: '1张表CRUD',
+    appTitle: '组织Demo',
     appLogo: `${appId}/public/img/logo.png`,
     appType: 'single',
     appDirectoryLink: '/',
-    indexPage: `/${appId}/page/studentManagement`,
+    indexPage: `/${appId}/page/staffManagement`,
     loginPage: `/${appId}/page/login`,
     helpPage: `/${appId}/page/help`,
     uploadDir,
