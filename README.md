@@ -9,20 +9,21 @@
 
 - 企业组织
 - 组织树
-- 人 <==多对多==> 组织
+- 员工 <==多对多==> 组织
 - 组织 ===> 多个下属组织
 
 > 备注: 
 >
 > - 组织===部门
 > - 树节点最多：10层
+> - 一个职员 在一个组织下 只能有一个角色
 
 ## 数据库表
 
-- member: 人/职员/成员 表
+- staff: 员工表
 - org: 组织表
 - org_tree: 组织树表 ====》 暂时没有必要
-- org_member_role: 组织成员表
+- org_staff_role: 组织成员表
 
 > 备注: 
 >
@@ -32,7 +33,7 @@
 
 ## 页面
 
-- memberManagement: 职员crud
+- staffManagement: 职员crud
 - orgManagement: 组织crud & 组织成员crud & 组织下属组织成员展示
 
 
