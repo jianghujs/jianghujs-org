@@ -1,5 +1,33 @@
 # jianghujs-org
 
+
+## 需求
+
+- 企业组织
+- 组织树
+- 人 <==多对多==> 组织
+- 组织 ===> 多个下属组织
+> 备注: 组织===部门
+> 树节点最多：10层
+
+## 数据库表
+
+- member: 人/职员/成员 表
+- org: 组织表
+- org_tree: 组织树表 ====》 暂时没有必要
+- org_member_role: 组织成员表
+
+> 备注: 
+>
+>  - orgId: 路径法生成, E.g: 01-04-03-03
+>  - roleId: 负责人、成员
+
+
+## 页面
+
+- 
+
+
 ## 配置
 
 1. npm install
@@ -27,15 +55,5 @@ use jianghujs_org;
 
 - admin/123456
 
-## 页面
 
-1. 应用协议: frontendDemo.html
-   * 增删改查（select，insert，softUpdate，softDelete）
 
-## FAQ
-
-- egg-jianghu mysql view
-```sql
-DROP VIEW IF EXISTS `_view01_user`;
-CREATE ALGORITHM = UNDEFINED SQL SECURITY DEFINER VIEW `_view01_user` AS select * from `_user`;
-```
