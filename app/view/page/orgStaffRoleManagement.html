@@ -62,8 +62,7 @@ SQL END!-->
       </v-col>
       <v-col cols="12" xs="9" sm="8" md="9" xl="10">
         <v-data-table fixed-header
-                      show-expand
-                      :expanded="expanded"
+                      group-by="部门"
                       :headers="headers"
                       :items="tableData"
                       :search="searchInput"
@@ -76,11 +75,6 @@ SQL END!-->
           <template v-slot:item.action="{ item }">
             <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
             <!-- <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn> -->
-          </template>
-          <template v-slot:expanded-item="{ headers, item }">
-            <td :colspan="headers.length">
-              More info about {{ item.name }}
-            </td>
           </template>
         </v-data-table>
       </v-col>
@@ -219,8 +213,7 @@ new Vue({
       {text: "职员邮箱", value: "staffEmail", width: 120},
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
-      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed-expand-2', cellClass: 'fixed-expand-2'},
-      {text: '展开', value: 'data-table-expand', class: 'fixed-expand-1', cellClass: 'fixed-expand-1'},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: 200, class: 'fixed', cellClass: 'fixed'},
     ],
     isEditDrawerShow: false,
     editItem: {},
@@ -372,7 +365,16 @@ new Vue({
       const { rows } = result.data.appData.resultData;
 
       this.tableDataFromBackend = rows;
-      this.tableDataTree = rows;
+      this.tableDataTree = rows.map(item => {
+        const pathArr = item.orgPath.split("-");
+        const orgPathName = [];
+        pathArr.forEach(path => {
+          const org = this.orgBackend.find(row => row.orgId === path);
+          orgPathName.push(org.orgName);
+        })
+        item['部门'] = orgPathName.join(' - ');
+        return item;
+      });
       this.expanded = rows;
       this.isTableLoading = false;
     },
@@ -497,6 +499,16 @@ table > tbody > tr > td.fixed-expand-2, table > thead > tr > th.fixed-expand-2 {
 }
 table > tbody > tr > td.fixed-expand-2, table > thead > tr > th.fixed-expand-2 {
   right: 58px;
+}
+.theme--light.v-data-table .v-row-group__header .v-icon {
+  font-size: 18px;
+}
+.theme--light.v-data-table .v-row-group__header {
+  background: #FBFBFB;
+  font-weight: 600;
+}
+.theme--light.v-data-table .v-row-group__header ~ tr:not(.v-row-group__header) > td:first-child {
+  padding-left: 40px;
 }
 </style>
 {% endblock %}
