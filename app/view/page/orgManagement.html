@@ -177,7 +177,9 @@ new Vue({
     tableDataFromBackend: [],
     headers: [
       {text: "组织Id", value: "orgId", width: 120, class: 'fixed', cellClass: 'fixed'}, 
-      {text: "组织名", value: "orgName", width: 120, class: 'fixed', cellClass: 'fixed'}, 
+      {text: "节点路径", value: "orgPath", width: 120, cellClass: 'fixed'}, 
+      {text: "组织父节点", value: "orgParentId", width: 120, cellClass: 'fixed'}, 
+      {text: "组织名", value: "orgName", width: 120, cellClass: 'fixed'}, 
       {text: "备注", value: "remark", width: 120}, 
       {text: "操作者", value: "operationByUser", width: 120},
       {text: "操作时间", value: "operationAt", width: 250},
@@ -266,7 +268,7 @@ new Vue({
             actionData: {},
             where: {},
             whereLike: serverSearchInput,
-            orderBy: [{column: 'orgId', order: 'desc'}]
+            orderBy: [{column: 'orgPath', order: 'asc'}]
           }
         }
       });
