@@ -103,6 +103,12 @@ SQL END!-->
         <span class="inputLabel">职员邮箱</span>
         <v-text-field class="cus-v-input " dense filled single-line v-model="addItem['staffEmail']"></v-text-field>
       </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">组织</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
+        v-model="addItem['orgId']" :items="constantCollection['org']"></v-select>
+      </v-col>
        
     </v-row>
     <v-row class="justify-end pr-6">
@@ -149,6 +155,12 @@ SQL END!-->
         <span class="inputLabel">职员邮箱</span>
         <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffEmail']"></v-text-field>
       </v-col>
+
+      <!-- <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">组织</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
+        v-model="editItem['orgId']" :items="constantCollection['org']"></v-select>
+      </v-col> -->
        
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
@@ -196,6 +208,7 @@ new Vue({
       v => !!v || 'This is required',
     ],
     constantCollection: {
+      org: []
     },
 
     serverSearchInput: {
@@ -232,6 +245,7 @@ new Vue({
   watch: {},
   async created() {
     await this.doUiAction('refreshTableData');
+    await this.getOrg();
   },
   mounted() {},
   methods: {
@@ -273,6 +287,24 @@ new Vue({
       }
     },
     // =================================uiAction 公共方法 start ======================================
+    async getOrg(){;
+      const {rows} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgManagement',
+            actionId: 'selectItemList'
+          }
+        }
+      })).data.appData.resultData;
+      this.setOrgConstant(rows)
+    },
+    // 设置组织常量
+    setOrgConstant(rows){
+      const org = rows.map(item => {
+        return {text: item.orgName, value: item.orgId}
+      })
+      this.$set(this.constantCollection, 'org', org) 
+    },
     /**
      * uiActionId:  prepareValidate
      * description: ✅表单校验
@@ -332,9 +364,9 @@ new Vue({
       }
     },
     async doCreateItem() {
-      const { id, ...data } = this.addItem;
+      const { id, orgId, ...data } = this.addItem;
       await window.vtoast.loading("新增数据");
-      await window.jianghuAxios({
+      const result = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'staffManagement',
@@ -342,7 +374,30 @@ new Vue({
             actionData: data
           }
         }
-      })
+      })).data.appData.resultData.rows;
+      if(orgId){
+        const staff = (await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'staffManagement',
+              actionId: 'selectItemList',
+              where: { id: result[0] }
+            }
+          }
+        })).data.appData.resultData.rows[0];
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'orgStaffRoleManagement',
+              actionId: 'insertItem',
+              actionData: {
+                orgId: orgId,
+                staffId: staff.staffId
+              }
+            }
+          }
+        })
+      }
       await window.vtoast.success("新增数据成功");
     },
     async closeDrawerShow() {
@@ -370,7 +425,7 @@ new Vue({
       }
     },
     async doUpdateItem() {
-      const { id, staffId, ...data } = this.editItem;
+      const { id, orgId, ...data } = this.editItem;
       await window.vtoast.loading("修改数据");
       await window.jianghuAxios({
         data: {

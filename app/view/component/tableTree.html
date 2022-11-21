@@ -1,36 +1,42 @@
 <script type="text/x-template" id="table-tree">
     <v-expansion-panel
-        v-for="(item,i) in tableData"
+        v-for="(group,i) in tableData"
         :key="i"
     >
       <v-expansion-panel-header>
-        {{ item.orgName }}
+        <div>
+          <span>{{ group.orgName }}</span>
+          <v-btn color="success" dark small class="elevation-0 ml-2" @click.stop="doUiAction('startCreateItem', {group})">新增</v-btn>
+        </div>
       </v-expansion-panel-header>
       <v-expansion-panel-content>
         <v-data-table 
-            v-if="item.memberList"
+            v-if="group.memberList"
             fixed-header
             hide-default-footer
             :headers="nodeHeaders"
-            :items="item.memberList"
+            :items="group.memberList"
             :search="searchInput"
             mobile-breakpoint="0"
             :loading="isTableLoading"
             checkbox-color="success"
-            class="elevation-0 mb-2 mb-xs-4 flex-fill d-flex flex-column">
+            class="elevation-0 mb-2 mb-xs-4 flex-fill d-flex flex-column"
+            dense>
             <template v-slot:item.action="{ item }">
-              <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-              <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+              <v-btn small class=" success" @click.stop="doUiAction('startUpdateItem', {item})">修改</v-btn>
+              <v-btn small class=" error" @click.stop="doUiAction('deleteItem', {item})">移除</v-btn>
             </template>
         </v-data-table>
-        <v-expansion-panels>
+        <v-expansion-panels dense>
           <table-tree 
-            v-if="item.children"
-            v-for="(child,childIndex) in item.children"
+            v-if="group.children"
+            v-for="(child,childIndex) in group.children"
             :key="child.orgId"
             :table-data="[child]" 
             :nodeHeaders="nodeHeaders"
-            :isTachildleLoading="isTableLoading"
+            :isTableLoading="isTableLoading"
+            :activePanel="[0]"
+            @doUiAction="doUiAction"
           /></table-tree>
         </v-expansion-panels>
       </v-expansion-panel-content>
@@ -52,13 +58,17 @@
       isTableLoading: {
         type: Boolean,
         default: false
+      },
+      activePanel: {
+        type: Array,
+        default: []
       }
     },
     watch: {
       tableData: {
         immediate: true,
         async handler(val) {
-          console.log('tableData================', val)
+
         },
         deep: true
       }
@@ -72,7 +82,9 @@
    
     },
     methods: {
-
+      doUiAction(uiActionId, uiActionData){
+        this.$emit('doUiAction', uiActionId, uiActionData)
+      }
     }
   });
 </script>

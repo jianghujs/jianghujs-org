@@ -39,7 +39,6 @@ SQL END!-->
     <v-row class="ma-0 pa-xs-4 align-center flex-none pt-0 " :class="{'pa-4': !isMobile, 'pb-0': !isMobile, 'pa-2': isMobile}">
 
       <v-col cols="12" xs="4" sm="4" md="4" xl="4" class="pl-0">
-        <v-btn color="success" dark class="elevation-0 mr-2" @click="doUiAction('startCreateItem')">新增</v-btn>
         <span class="body-2">共{{ tableData.length }}条记录</span>
       </v-col>
 
@@ -58,71 +57,19 @@ SQL END!-->
             activatable
             :open="openTree"
             :items="orgTree"
+            dense
         ></v-treeview>
       </v-col>
       <v-col cols="12" xs="9" sm="8" md="9" xl="10">
-        <v-expansion-panels multiple v-model="activePanel" accordion>
+        <v-expansion-panels multiple v-model="activePanel" accordion dense>
           <table-tree 
             :table-data="tableData" 
             :nodeHeaders="nodeHeaders"
             :isTableLoading="isTableLoading"
             :activePanel="activePanel"
+            @doUiAction="doUiAction"
           /></table-tree>
         </v-expansion-panels>
-        <!-- <template v-for="group of tableData">
-          <template v-if="group.children">
-           <v-data-table 
-              fixed-header
-              show-expand
-              :expanded="expanded"
-              hide-default-header
-              hide-default-footer
-              :headers="groupHeaders"
-              :items="[group]"
-              :search="searchInput"
-              :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
-              :items-per-page="20"
-              mobile-breakpoint="0"
-              :loading="isTableLoading"
-              checkbox-color="success"
-              class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-            <template v-slot:expanded-item="{ headers, item }">
-              <td :colspan="headers.length">
-                <v-data-table 
-                    fixed-header
-                    hide-default-footer
-                    :headers="nodeHeaders"
-                    :items="item.memberList"
-                    :search="searchInput"
-                    mobile-breakpoint="0"
-                    :loading="isTableLoading"
-                    checkbox-color="success"
-                    class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-                    <template v-slot:item.action="{ item }">
-                      <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-                      <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
-                    </template>
-                </v-data-table>
-              </td>
-            </template>
-           </v-data-table>
-          </template>
-          <template v-if="group.memberList">
-            <v-data-table fixed-header
-                          :headers="nodeHeaders"
-                          :items="group.memberList"
-                          :search="searchInput"
-                          mobile-breakpoint="0"
-                          :loading="isTableLoading"
-                          checkbox-color="success"
-                          class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
-              <template v-slot:item.action="{ item }">
-                <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-                <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
-              </template>
-            </v-data-table>
-          </template>
-        </template> -->
       </v-col>
     </v-row>
   </v-card>
@@ -188,27 +135,34 @@ SQL END!-->
 
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员名</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffName']"></v-text-field>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['staffName']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员状态</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffStatus']"></v-text-field>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['staffStatus']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员工作状态</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffWorkStatus']"></v-text-field>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['staffWorkStatus']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员联系电话</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffContact']"></v-text-field>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['staffContact']"></v-text-field>
       </v-col>
 
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">职员邮箱</span>
-        <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffEmail']"></v-text-field>
+        <v-text-field class="cus-v-input " disabled dense filled single-line v-model="editItem['staffEmail']"></v-text-field>
+      </v-col>
+
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+        <span class="inputLabel">组织</span>
+        <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
+        v-model="editItem['orgId']" :items="constantCollection['org']"
+        :rules="requireRules"></v-select>
       </v-col>
     </v-row>
     <v-row class="justify-end mx-0 mt-8" :class="{'px-10': !isMobile, 'px-4': isMobile, 'mb-8': isMobile}">
@@ -237,6 +191,7 @@ new Vue({
       v => !!v || 'This is required',
     ],
     constantCollection: {
+      org: []
     },
     serverSearchInput: {
       studentId: null,
@@ -269,7 +224,8 @@ new Vue({
     editItem: {},
     isAddDrawerShow: false,
     addItem: {},
-    activePanel: [0]
+    activePanel: [0],
+    currentOrgData: {}
   }),
   computed: {
     isMobile() {
@@ -284,6 +240,7 @@ new Vue({
   async created() {
     await this.doUiAction('refreshOrgData');
     await this.doUiAction('refreshStaffData');
+    await this.getOrg();
   },
   mounted() {},
   methods: {
@@ -296,7 +253,7 @@ new Vue({
           await this.refreshStaffData();
           break;
         case 'startCreateItem':
-          await this.clearItemData();
+          await this.clearItemData(uiActionData);
           await this.openCreateItemDialog();
           break;
         case 'createItem':
@@ -317,17 +274,35 @@ new Vue({
           await this.closeDrawerShow();
           await this.refreshStaffData();
           break;
-          // case 'deleteItem':
-          //   await this.confirmDeleteItemDialog();
-          //   await this.doDeleteItem(uiActionData);
-          //   await this.refreshStaffData();
-          //   break;
+        case 'deleteItem':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteItem(uiActionData);
+          await this.refreshStaffData();
+          break;
         default:
           console.error("[doUiAction] uiActionId not find", { uiActionId });
           break;
       }
     },
     // =================================uiAction 公共方法 start ======================================
+    async getOrg(){;
+      const {rows} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgManagement',
+            actionId: 'selectItemList'
+          }
+        }
+      })).data.appData.resultData;
+      this.setOrgConstant(rows)
+    },
+    // 设置组织常量
+    setOrgConstant(rows){
+      const org = rows.map(item => {
+        return {text: item.orgName, value: item.orgId}
+      })
+      this.$set(this.constantCollection, 'org', org) 
+    },
     /**
      * uiActionId:  prepareValidate
      * description: ✅表单校验
@@ -431,8 +406,7 @@ new Vue({
           return item;
         });
       }
-      this.tableDataTree = buildMemberList(this.orgTree);
-      console.log(this.tableDataTree);
+      this.tableDataTree = Object.assign({}, this.tableDataTree, buildMemberList(this.orgTree));
       // this.tableDataTree = rows.map(item => {
       //   const pathArr = item.orgPath.split("-");
       //   const orgPathName = [];
@@ -452,8 +426,9 @@ new Vue({
      * uiActionId:  startCreateItem
      * description: ✅获取表格数据
      */
-    async clearItemData() {
-      this.addItem = {};
+    async clearItemData({group}) {
+      this.editItem = {};
+      this.currentOrgData = group
     },
     async openCreateItemDialog() {
       this.isAddDrawerShow = true;
@@ -471,12 +446,33 @@ new Vue({
     async doCreateItem() {
       const { id, ...data } = this.addItem;
       await window.vtoast.loading("新增数据");
-      await window.jianghuAxios({
+      const result = (await window.jianghuAxios({
         data: {
           appData: {
             pageId: 'staffManagement',
             actionId: 'insertItem',
             actionData: data
+          }
+        }
+      })).data.appData.resultData.rows;
+      const staff = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'staffManagement',
+            actionId: 'selectItemList',
+            where: { id: result[0] }
+          }
+        }
+      })).data.appData.resultData.rows[0];
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgStaffRoleManagement',
+            actionId: 'insertItem',
+            actionData: {
+              orgId: this.currentOrgData.orgId,
+              staffId: staff.staffId
+            }
           }
         }
       })
@@ -507,14 +503,16 @@ new Vue({
       }
     },
     async doUpdateItem() {
-      const { id, staffId, ...data } = this.editItem;
+      const { id, orgId, ...data } = this.editItem;
       await window.vtoast.loading("修改数据");
       await window.jianghuAxios({
         data: {
           appData: {
-            pageId: 'staffManagement',
+            pageId: 'orgStaffRoleManagement',
             actionId: 'updateItem',
-            actionData: data,
+            actionData: {
+              orgId: orgId,
+            },
             where: {id}
           }
         }
@@ -537,7 +535,7 @@ new Vue({
       await window.jianghuAxios({
         data: {
           appData: {
-            pageId: 'staffManagement',
+            pageId: 'orgStaffRoleManagement',
             actionId: 'deleteItem',
             actionData: {},
             where: { id: id }
