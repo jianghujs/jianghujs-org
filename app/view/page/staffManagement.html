@@ -107,7 +107,8 @@ SQL END!-->
       <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">组织</span>
         <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
-        v-model="addItem['orgId']" :items="constantCollection['org']"></v-select>
+        v-model="addItem['orgId']" :items="constantCollection['org']" 
+        multiple></v-select>
       </v-col>
        
     </v-row>
@@ -156,11 +157,12 @@ SQL END!-->
         <v-text-field class="cus-v-input " dense filled single-line v-model="editItem['staffEmail']"></v-text-field>
       </v-col>
 
-      <!-- <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
+      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">
         <span class="inputLabel">组织</span>
         <v-select class="cus-v-input mr-2" dense filled single-line clearable color="success"
-        v-model="editItem['orgId']" :items="constantCollection['org']"></v-select>
-      </v-col> -->
+        v-model="editItem['orgId']" :items="constantCollection['org']" 
+        multiple></v-select>
+      </v-col>
        
 <!--      <v-col cols="12" sm="12" md="4" xl="3" :class="{'pa-0': isMobile, 'px-4': isMobile, 'pt-6': isMobile}">-->
 <!--        &lt;!&ndash; 必填字段样式 demo :rules="requireRules" &ndash;&gt;-->
@@ -232,7 +234,8 @@ new Vue({
     isEditDrawerShow: false,
     editItem: {},
     isAddDrawerShow: false,
-    addItem: {}
+    addItem: {},
+    editItemOrg: []
   }),
   computed: {
     isMobile() {
@@ -268,6 +271,7 @@ new Vue({
         case 'startUpdateItem':
           await this.prepareItemData(uiActionData);
           await this.openUpdateDialog();
+          await this.getStaffOrg();
           break;
         case 'updateItem':
           await this.prepareValidate();
@@ -304,6 +308,23 @@ new Vue({
         return {text: item.orgName, value: item.orgId}
       })
       this.$set(this.constantCollection, 'org', org) 
+    },
+    // 获取员工所在组织
+    async getStaffOrg(){
+      const {rows} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgStaffRoleManagement',
+            actionId: 'selectItem',
+            where: {
+              staffId: this.editItem.staffId
+            }
+          }
+        }
+      })).data.appData.resultData;
+      const org = rows.map(item => item.orgId)
+      this.$set(this.editItem, 'orgId', org)
+      this.editItemOrg = org
     },
     /**
      * uiActionId:  prepareValidate
@@ -385,18 +406,20 @@ new Vue({
             }
           }
         })).data.appData.resultData.rows[0];
-        await window.jianghuAxios({
-          data: {
-            appData: {
-              pageId: 'orgStaffRoleManagement',
-              actionId: 'insertItem',
-              actionData: {
-                orgId: orgId,
-                staffId: staff.staffId
+        await Promise.all(orgId.map(async org => {
+          return await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'orgStaffRoleManagement',
+                actionId: 'insertItem',
+                actionData: {
+                  orgId: org,
+                  staffId: staff.staffId
+                }
               }
             }
-          }
-        })
+          })
+        }))
       }
       await window.vtoast.success("新增数据成功");
     },
@@ -437,6 +460,40 @@ new Vue({
           }
         }
       })
+      // 删除组织
+      const delOrg = _.difference(this.editItemOrg, orgId);
+      if(delOrg.length > 0){
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'orgStaffRoleManagement',
+              actionId: 'deleteItem',
+              where: { staffId: data.staffId },
+              whereIn: { 
+                orgId: delOrg
+              }
+            }
+          }
+        })
+      }
+      // 添加组织
+      const addOrg = _.difference(orgId, this.editItemOrg);
+      if(addOrg.length > 0){
+        await Promise.all(addOrg.map(async org => {
+          return await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'orgStaffRoleManagement',
+                actionId: 'insertItem',
+                actionData: {
+                  orgId: org,
+                  staffId: data.staffId
+                }
+              }
+            }
+          })
+        }))
+      }
       await window.vtoast.success("修改数据成功");
     },
 
