@@ -61,56 +61,55 @@ SQL END!-->
         ></v-treeview>
       </v-col>
       <v-col cols="12" xs="9" sm="8" md="9" xl="10">
-        <template v-for="group of tableData">
-          <v-expansion-panels>
-            <v-expansion-panel
-                v-for="(item,i) in group"
-                :key="i"
-            >
-              <v-expansion-panel-header>
-                {{ Item }}
-              </v-expansion-panel-header>
-              <v-expansion-panel-content>
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.
-              </v-expansion-panel-content>
-            </v-expansion-panel>
-          </v-expansion-panels>
-<!--          <template v-if="group.children">-->
-<!--            <v-data-table fixed-header-->
-<!--                          show-expand-->
-<!--                          :expanded="expanded"-->
-<!--                          hide-default-header-->
-<!--                          :headers="groupHeaders"-->
-<!--                          :items="[group]"-->
-<!--                          :search="searchInput"-->
-<!--                          :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"-->
-<!--                          :items-per-page="20"-->
-<!--                          mobile-breakpoint="0"-->
-<!--                          :loading="isTableLoading"-->
-<!--                          checkbox-color="success"-->
-<!--                          class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">-->
-<!--              <template v-slot:expanded-item="{ headers, item }">-->
-<!--                <template v-if="group.memberList">-->
-<!--                  <v-data-table fixed-header-->
-<!--                                :headers="headers"-->
-<!--                                :items="group.memberList"-->
-<!--                                :search="searchInput"-->
-<!--                                mobile-breakpoint="0"-->
-<!--                                :loading="isTableLoading"-->
-<!--                                checkbox-color="success"-->
-<!--                                class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">-->
-<!--                    <template v-slot:item.action="{ item }">-->
-<!--                      <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>-->
-<!--                      &lt;!&ndash; <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn> &ndash;&gt;-->
-<!--                    </template>-->
-<!--                  </v-data-table>-->
-<!--                </template>-->
-<!--              </template>-->
-<!--            </v-data-table>-->
+        <v-expansion-panels multiple v-model="activePanel" accordion>
+          <table-tree 
+            :table-data="tableData" 
+            :nodeHeaders="nodeHeaders"
+            :isTableLoading="isTableLoading"
+            :activePanel="activePanel"
+          /></table-tree>
+        </v-expansion-panels>
+        <!-- <template v-for="group of tableData">
+          <template v-if="group.children">
+           <v-data-table 
+              fixed-header
+              show-expand
+              :expanded="expanded"
+              hide-default-header
+              hide-default-footer
+              :headers="groupHeaders"
+              :items="[group]"
+              :search="searchInput"
+              :footer-props="{ itemsPerPageOptions: [20, 40, 60, 100, -1] }"
+              :items-per-page="20"
+              mobile-breakpoint="0"
+              :loading="isTableLoading"
+              checkbox-color="success"
+              class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+            <template v-slot:expanded-item="{ headers, item }">
+              <td :colspan="headers.length">
+                <v-data-table 
+                    fixed-header
+                    hide-default-footer
+                    :headers="nodeHeaders"
+                    :items="item.memberList"
+                    :search="searchInput"
+                    mobile-breakpoint="0"
+                    :loading="isTableLoading"
+                    checkbox-color="success"
+                    class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
+                    <template v-slot:item.action="{ item }">
+                      <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
+                      <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
+                    </template>
+                </v-data-table>
+              </td>
+            </template>
+           </v-data-table>
           </template>
-          <template v-else>
+          <template v-if="group.memberList">
             <v-data-table fixed-header
-                          :headers="headers"
+                          :headers="nodeHeaders"
                           :items="group.memberList"
                           :search="searchInput"
                           mobile-breakpoint="0"
@@ -119,11 +118,11 @@ SQL END!-->
                           class="elevation-0 mt-0 mb-xs-4 flex-fill d-flex flex-column">
               <template v-slot:item.action="{ item }">
                 <v-btn small class=" success" @click="doUiAction('startUpdateItem', {item})">修改</v-btn>
-                <!-- <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn> -->
+                <v-btn small class=" error" @click="doUiAction('deleteItem', {item})">删除</v-btn>
               </template>
             </v-data-table>
           </template>
-        </template>
+        </template> -->
       </v-col>
     </v-row>
   </v-card>
@@ -224,6 +223,7 @@ SQL END!-->
 {% endblock %}
 
 {% block vue_body %}
+{% include 'component/tableTree.html' %}
 
 <script type="module">
 new Vue({
@@ -251,9 +251,9 @@ new Vue({
     orgBackend: [],
     orgTree: [],
     openTree: [],
-    headers: [
-      {text: "职员Id", value: "staffId", width: 120, class: 'fixed', cellClass: 'fixed'},
-      {text: "职员名", value: "staffName", width: 120, class: 'fixed', cellClass: 'fixed'},
+    nodeHeaders: [
+      {text: "职员Id", value: "staffId", width: 120},
+      {text: "职员名", value: "staffName", width: 120},
       {text: "职员状态", value: "staffStatus", width: 120},
       {text: "职员工作状态", value: "staffWorkStatus", width: 120},
       {text: "职员联系电话", value: "staffContact", width: 120},
@@ -268,7 +268,8 @@ new Vue({
     isEditDrawerShow: false,
     editItem: {},
     isAddDrawerShow: false,
-    addItem: {}
+    addItem: {},
+    activePanel: [0]
   }),
   computed: {
     isMobile() {
@@ -575,6 +576,12 @@ table > tbody > tr > td.fixed-expand-2, table > thead > tr > th.fixed-expand-2 {
 }
 .theme--light.v-data-table .v-row-group__header ~ tr:not(.v-row-group__header) > td:first-child {
   padding-left: 40px;
+}
+.v-data-table__expanded td:nth-child(1){
+  width: 0;
+}
+.v-data-table>.v-data-table__wrapper tbody tr.v-data-table__expanded__content{
+  box-shadow: none;
 }
 </style>
 {% endblock %}
