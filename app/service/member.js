@@ -9,7 +9,7 @@ const { tableEnum } = require('../constant/constant');
 const actionDataScheme = Object.freeze({
 });
 
-class ArticleService extends Service {
+class MemberService extends Service {
 
   async fillInsertItemParamsBeforeHook() {
     const tableName = tableEnum.staff;
@@ -25,10 +25,10 @@ class ArticleService extends Service {
     Object.assign(this.ctx.request.body.appData.actionData, { idSequence, staffId })
   }
 
-  async selectStaffFromOgrId() {
+  async selectMemberFromOrgId() {
     const {knex} = this.app;
     const { where: {orgPrentId} } = this.ctx.request.body.appData;
-    const tableName = tableEnum.view01_org_staff_role;
+    const tableName = tableEnum.view01_member_org_role;
     let result;
     if(!orgPrentId) {
       result = await knex(tableName).select();
@@ -41,4 +41,4 @@ class ArticleService extends Service {
   }
 }
 
-module.exports = ArticleService;
+module.exports = MemberService;

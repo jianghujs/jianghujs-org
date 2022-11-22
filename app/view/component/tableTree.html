@@ -6,7 +6,7 @@
       <v-expansion-panel-header>
         <div>
           <span>{{ group.orgName }}</span>
-          <v-btn color="success" dark small class="elevation-0 ml-2" @click.stop="doUiAction('startCreateItem', {group})">新增</v-btn>
+          <v-btn color="success" dark small class="elevation-0 ml-2" @click.stop="doUiAction('startAddMember', { item: group })">新增</v-btn>
         </div>
       </v-expansion-panel-header>
       <v-expansion-panel-content>

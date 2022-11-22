@@ -22,11 +22,11 @@ module.exports = {
     _user_session: '_user_session',
     // ========================应用表============================
     org: 'org',
-    org_staff_role: 'org_staff_role',
-    staff: 'staff',
+    member_org_role: 'member_org_role',
+    member: 'member',
     // ========================基础 View============================
     _view01_user: '_view01_user',
-    view01_org_staff_role: 'view01_org_staff_role',
+    view01_member_org_role: 'view01_member_org_role',
     // ========================高级 View============================
   },
 };
