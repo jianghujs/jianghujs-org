@@ -12,7 +12,7 @@ const actionDataScheme = Object.freeze({
 class MemberService extends Service {
 
   async fillInsertItemParamsBeforeHook() {
-    const tableName = tableEnum.staff;
+    const tableName = tableEnum.member;
     const columnName = "idSequence";
     const startValue = 1000;
     const idSequence = await idGenerateUtil.idPlus({
@@ -21,8 +21,8 @@ class MemberService extends Service {
       columnName,
       startValue,
     });
-    const staffId = `E${idSequence}`
-    Object.assign(this.ctx.request.body.appData.actionData, { idSequence, staffId })
+    const memberId = `E${idSequence}`
+    Object.assign(this.ctx.request.body.appData.actionData, { idSequence, memberId })
   }
 
   async selectMemberFromOrgId() {
