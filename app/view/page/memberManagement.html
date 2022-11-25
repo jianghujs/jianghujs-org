@@ -314,7 +314,7 @@ new Vue({
       const {rows} = (await window.jianghuAxios({
         data: {
           appData: {
-            pageId: 'orgMemberRoleManagement',
+            pageId: 'memberOrgRoleManagement',
             actionId: 'selectItem',
             where: {
               memberId: this.editItem.memberId
@@ -466,7 +466,7 @@ new Vue({
         await window.jianghuAxios({
           data: {
             appData: {
-              pageId: 'orgMemberRoleManagement',
+              pageId: 'memberOrgRoleManagement',
               actionId: 'deleteItem',
               where: { memberId: data.memberId },
               whereIn: { 
@@ -483,7 +483,7 @@ new Vue({
           return await window.jianghuAxios({
             data: {
               appData: {
-                pageId: 'orgMemberRoleManagement',
+                pageId: 'memberOrgRoleManagement',
                 actionId: 'insertItem',
                 actionData: {
                   orgId: org,
