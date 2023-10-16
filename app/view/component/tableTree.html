@@ -1,0 +1,152 @@
+<script type="text/x-template" id="table-tree">
+<v-expansion-panels class="jh-expansion-panels" multiple v-model="activePanel" accordion dense>
+<v-expansion-panel
+  v-for="(group, i) in tableData"
+  :key="i"
+  :class="{'elevation-6': deep && activePanel && activePanel.includes(i)}"
+>
+  <v-expansion-panel-header class="px-2">
+    <v-row class="ma-0 pa-0">
+      <v-icon size="22" class="mr-1">mdi-circle-small</v-icon>
+      <span style="line-height: 1.4;">{{ group.orgName }}</span>
+      <v-btn color="success" dark x-small class="elevation-0 ml-2" @click.stop="startAddMemberToOrg(group)">新增员工</v-btn>
+    </v-row>
+  </v-expansion-panel-header>
+  <v-expansion-panel-content>
+    <v-data-table
+      v-if="group.memberList || !group.children"
+      fixed-header
+      hide-default-footer
+      :headers="memberHeader"
+      :items="group.memberList"
+      :search="searchInput"
+      mobile-breakpoint="0"
+      :loading="isTableLoading"
+      checkbox-color="success"
+      class="elevation-0 mb-2 mb-xs-4 flex-fill d-flex flex-column"
+      dense>
+      <template v-slot:item.action="{ item }">
+        <span
+          role="button" class="success--text font-weight-medium font-size-2 mr-2"
+          @click="startUpdateItem(item)">
+          <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+        </span>
+        <span
+          role="button" class="success--text font-weight-medium font-size-2 mr-2"
+          @click="deleteItem(item)">
+          <v-icon size="16" class="success--text">mdi-trash-can-outline</v-icon>删除
+        </span>
+      </template>
+      <!--没有数据-->
+      <template v-slot:loading>
+        <div>数据加载中</div>
+      </template>
+      <template v-slot:no-data>
+        <div>暂无数据</div>
+      </template>
+      <template v-slot:no-results>
+        <div>暂无数据</div>
+      </template>
+    </v-data-table>
+    <table-tree
+      v-if="group.children"
+      :key="group.orgId"
+      :parentOrgId="`_${group.id}`"
+      :table-data="group.children"
+      :activePanel="group.activePanel"
+      :memberHeader="memberHeader"
+      :isTableLoading="isTableLoading"
+      :deep="deep + 1"
+      @startAddMemberToOrg="startAddMemberToOrg"
+      @startUpdateMemberItem="startUpdateItem"
+      @deleteMemberFromOrg="deleteItem"
+    >
+    </table-tree>
+  </v-expansion-panel-content>
+</v-expansion-panel>
+</v-expansion-panels>
+</script>
+
+<script>
+Vue.component("table-tree", {
+  template: "#table-tree",
+  props: {
+    parentOrgId: {
+      type: Number,
+      default: -1
+    },
+    activePanel: {
+      type: Array,
+      default: []
+    },
+    tableData: {
+      type: Object,
+      default: {}
+    },
+    memberHeader: {
+      type: Object,
+      default: {}
+    },
+    isTableLoading: {
+      type: Boolean,
+      default: false
+    },
+    deep: Number
+  },
+  watch: {
+  },
+  data() {
+    return {
+      searchInput: null,
+    };
+  },
+  mounted() {
+  },
+  methods: {
+    startAddMemberToOrg(funObj) {
+      this.$emit('startAddMemberToOrg', funObj)
+    },
+    startUpdateItem(funObj) {
+      this.$emit('startUpdateMemberItem', funObj)
+    },
+    deleteItem(funObj) {
+      this.$emit('deleteMemberFromOrg', funObj)
+    },
+  }
+});
+</script>
+
+<style scoped>
+
+/* 右侧部门样式 */
+.jh-expansion-panels .v-expansion-panel {
+  border: 1px solid #EEEEEE;
+}
+
+.jh-expansion-panels-container > .jh-expansion-panels > .v-expansion-panel {
+  border: 0;
+}
+
+.jh-expansion-panels > .v-expansion-panel .v-expansion-panel-content__wrap {
+  padding: 0 !important;
+}
+
+.jh-expansion-panels > .v-expansion-panel .v-expansion-panels {
+  padding: 0 8px;
+}
+
+.jh-expansion-panels > .v-expansion-panel .v-expansion-panel {
+  margin-bottom: 8px;
+}
+
+.jh-expansion-panels > .v-expansion-panel .v-expansion-panel:after {
+  content: none !important;
+}
+
+.jh-expansion-panels .v-expansion-panel:before {
+  content: none;
+}
+.jh-expansion-panels.v-expansion-panels > .v-expansion-panel{
+  border-radius: 4px!important;
+}
+</style>

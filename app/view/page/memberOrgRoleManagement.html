@@ -1,0 +1,735 @@
+{% extends 'template/jhTemplateV4.html'%}
+
+{% block vueTemplate %}
+
+<script type="text/html" id="app-template">
+<div>
+  <v-app id="inspire" mobile-breakpoint="sm">
+    <jh-menu />
+    <v-main class="d-flex flex-column" style="margin-top: 60px">
+      <!-- 头部内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-second-bar px-8">
+        <v-row class="align-center">
+          <v-col cols="12" xs="12" sm="12" md="4" xl="3">
+            <div class="py-4 text-body-1 font-weight-bold">职员组织管理
+              <!-- 帮助页按钮 -->
+              <span role="button" class="success--text font-weight-regular jh-font-size-13 ml-2" @click="isHelpPageDrawerShown = true">
+                <v-icon size="13" class="success--text">mdi-help-circle-outline</v-icon>帮助
+              </span>
+            </div>
+          </v-col>
+        </v-row>
+      </div>
+      <!-- <<<<<<<<<<<<< 头部内容 -->
+
+      <!-- 页面内容 >>>>>>>>>>>>> -->
+      <div class="jh-page-body-container px-8">
+        <!-- 页面主要内容 -->
+        <v-row class="ma-0 pa-0">
+          <!-- 目录树 -->
+          <v-col cols="12" xs="3" sm="4" md="3" xl="2" class="pa-0">
+            <v-card class="rounded-lg">
+              <v-row class="ma-0 pa-4">
+                <v-col cols="12" class="pa-0">
+                  <v-text-field v-model="searchTreeInput" label="表格过滤" class="jh-v-input" dense filled single-line hide-details></v-text-field>
+                </v-col>
+              </v-row>
+              <v-treeview
+                @update:active="onTreeChange"
+                @update:open="onTreeOpen"
+                hoverable
+                activatable
+                :open="openTree"
+                :items="orgTree"
+                dense
+                item-key="orgNumber"
+                item-text="orgName"
+                :search="searchTreeInput"
+                class="jh-fixed-table-height px-4"
+                style="overflow: hidden; overflow-y: auto;"
+                :active="activePathId"
+              >
+              </v-treeview>
+              <v-overlay absolute :value="isTableLoading" color="#fff">
+                <v-progress-circular
+                  color="success"
+                  indeterminate
+                  size="32"
+                ></v-progress-circular>
+              </v-overlay>
+            </v-card>
+          </v-col>
+
+          <!-- 表格 -->
+          <v-col cols="12" xs="9" sm="8" md="9" xl="10" class="py-0 pr-0">
+            <v-card class="rounded-lg" style="height: 100%;">
+              <v-row class="ma-0 pa-4" >
+                <v-col cols="12" xs="8" sm="8" md="7" xl="7" class="pa-0">
+                  <v-chip v-if="currentPathName" class="mr-2"> {{currentPathName}} </v-chip>
+                  <v-btn v-if="currentPath" @click="doUiAction('startAddMemberToOrg')" color="success mr-1" depressed small> <v-icon size="16" class="mr-1"> mdi-open-in-new </v-icon> 新增员工 </v-btn>
+                </v-col>
+                <v-spacer></v-spacer>
+                <!-- 搜索过滤 -->
+                <v-col cols="12" xs="8" sm="8" md="5" xl="5" class="pa-0 d-flex">
+                  <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
+                    filled single-line></v-text-field>
+                </v-col>
+              </v-row>
+              <!-- 表格 -->
+              <v-data-table :headers="memberHeader" :items="tableTreeData" :search="searchInput"
+                :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+                :items-per-page="-1" mobile-breakpoint="0" :loading="isTableLoading"
+                checkbox-color="success" fixed-header :class="{'zebraLine': isTableZebraLineShown }"
+                class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+                <!-- 表格行操作按钮 -->
+                <template v-slot:item.action="{ item }">
+                  <template>
+                    <!-- pc端 -->
+                    <template v-if="!isMobile">
+                      <span role="button" class="success--text font-weight-medium font-size-2 mr-2" @click="doUiAction('startUpdateMemberItem', item)">
+                        <v-icon size="16" class="success--text">mdi-note-edit-outline</v-icon>修改
+                      </span>
+                      <span role="button" class="red--text text--accent-2 font-weight-medium font-size-2" @click="doUiAction('deleteMemberFromOrg', item)">
+                        <v-icon size="16" class="red--text text--accent-2">mdi-trash-can-outline</v-icon>删除
+                      </span>
+                    </template>
+                    <!-- 手机端 -->
+                    <v-menu offset-y v-if="isMobile">
+                      <template v-slot:activator="{ on, attrs }">
+                        <span role="button" class="success--text font-weight-medium font-size-2"
+                          v-bind="attrs" v-on="on">
+                          操作<v-icon size="14" class="success--text">mdi-chevron-down</v-icon>
+                        </span>
+                      </template>
+                      <v-list dense>
+                        <v-list-item @click="doUiAction('startUpdateMemberItem', item)">
+                          <v-list-item-title>修改</v-list-item-title>
+                        </v-list-item>
+                        <v-list-item @click="doUiAction('deleteMemberFromOrg', item)">
+                          <v-list-item-title>删除</v-list-item-title>
+                        </v-list-item>
+                      </v-list>
+                    </v-menu>
+                  </template>
+                </template>
+                <!-- 没有数据 -->
+                <template v-slot:loading>
+                  <div class="jh-no-data">数据加载中</div>
+                </template>
+                <template v-slot:no-data>
+                  <div class="jh-no-data">暂无数据</div>
+                </template>
+                <template v-slot:no-results>
+                  <div class="jh-no-data">暂无数据</div>
+                </template>
+                <!-- 表格分页 -->
+                <template v-slot:footer.page-text="pagination">
+                  <span>{{pagination.pageStart}}-{{pagination.pageStop}}</span>
+                  <span class="ml-1">共{{pagination.itemsLength}}条</span>
+                </template>
+              </v-data-table>
+            </v-card>
+          </v-col>
+        </v-row>
+
+        <!-- 新增 -->
+        <v-navigation-drawer v-model="isAddMemberToOrgDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <!-- 抽屉标题 -->
+          <v-row no-gutters>
+            <span class="text-h7 font-weight-bold pa-4">管理员工</span>
+          </v-row>
+          <v-divider class="jh-divider"></v-divider>
+
+          <!-- 表格操作 -->
+          <v-row class="ma-0 mt-4 px-4">
+            <v-spacer></v-spacer>
+            <!-- 搜索过滤 -->
+            <v-col cols="12" xs="8" sm="4" md="3" xl="2" class="pa-0">
+              <v-text-field color="success" v-model="searchInput" prefix="搜索：" class="jh-v-input" dense
+                  filled single-line></v-text-field>
+            </v-col>
+          </v-row>
+
+          <!-- 表格 -->
+          <v-data-table
+            :headers="memberHeader"
+            :items="memberFullList"
+            :search="searchInput"
+            :footer-props="{ itemsPerPageOptions: [20, 50, -1], itemsPerPageText: '每页行数', itemsPerPageAllText: '所有'}"
+            :items-per-page="-1"
+            mobile-breakpoint="0"
+            :loading="isTableLoading"
+            :class="{'zebraLine': isTableZebraLineShown }"
+            checkbox-color="success"
+            fixed-header
+            class="jh-fixed-table-height elevation-0 mt-0 mb-xs-4">
+            <template v-slot:item.action="{ item }">
+              <span
+                v-if="!checkMemberInOrg(item)" role="button"
+                class="success--text font-weight-medium font-size-2 mr-2"
+                @click="doUiAction('addMemberToOrg', item)">
+                <v-icon size="16" class="success--text">mdi-plus-box</v-icon>加入
+              </span>
+              <span
+                v-else
+                role="button" class="red--text text--accent-2 font-weight-medium font-size-2 mr-2"
+                @click="doUiAction('removeMemberFromOrg', item)">
+                <v-icon size="16" class="red--text text--accent-2">mdi-delete</v-icon>移除
+              </span>
+            </template>
+            <!--没有数据-->
+            <template v-slot:loading>
+              <div class="jh-no-data">数据加载中</div>
+            </template>
+            <template v-slot:no-data>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+            <template v-slot:no-results>
+              <div class="jh-no-data">暂无数据</div>
+            </template>
+          </v-data-table>
+          
+          <!--抽屉关闭按钮-->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isAddMemberToOrgDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+
+        <!-- 编辑抽屉 -->
+        <v-navigation-drawer v-model="isUpdateMemberItemDrawerShown" v-click-outside="drawerClickOutside" fixed temporary right width="80%" class="elevation-24">
+          <v-form ref="form" lazy-validation>
+            <!-- 抽屉标题 -->
+            <v-row no-gutters>
+              <span class="text-h7 font-weight-bold pa-4">修改信息</span>
+            </v-row>
+            <v-divider class="jh-divider"></v-divider>
+            <!--抽屉表单-->
+            <v-row class="mt-0 px-4">
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">职员名</span>
+                <v-text-field class="jh-v-input " disabled dense filled single-line v-model="updateMemberItem['memberName']">
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">职员状态</span>
+                <v-text-field class="jh-v-input " disabled dense filled single-line v-model="updateMemberItem['memberStatus']">
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">职员工作状态</span>
+                <v-text-field class="jh-v-input " disabled dense filled single-line v-model="updateMemberItem['memberWorkStatus']">
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">职员联系电话</span>
+                <v-text-field class="jh-v-input " disabled dense filled single-line v-model="updateMemberItem['memberContact']">
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">职员邮箱</span>
+                <v-text-field class="jh-v-input " disabled dense filled single-line v-model="updateMemberItem['memberEmail']">
+                </v-text-field>
+              </v-col>
+
+              <v-col cols="12" sm="12" md="4">
+                <span class="inputLabel">组织</span>
+                <v-select class="jh-v-input mr-2" dense filled single-line clearable color="success" v-model="updateMemberItem['orgId']" :items="constantObj['org']" multiple>
+                </v-select>
+              </v-col>
+            </v-row>
+            <!--抽屉操作按钮-->
+            <v-row class="justify-end mx-0 my-8 px-4">
+              <v-btn color="success" small @click="doUiAction('updateMemberItem')">保存</v-btn>
+              <v-btn class="ml-2" small @click="isUpdateMemberItemDrawerShown = false">取消
+              </v-btn>
+            </v-row>
+          </v-form>
+          <!--抽屉关闭按钮-->
+          <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isUpdateMemberItemDrawerShown = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-navigation-drawer>
+      </div>
+      <!-- <<<<<<<<<<<<< 页面内容 -->
+
+      <!-- 帮助页抽屉 >>>>>>>>>>>>> -->
+      <v-navigation-drawer v-model="isHelpPageDrawerShown" fixed temporary right width="80%" class="elevation-24">
+        <iframe style="border: 0" :src="`/${appInfo.appId}/pageDoc?markdownPath#3.memberOrgRoleManagement.md`" width="100%" height="100%"></iframe>
+        <v-btn elevation="0" color="success" fab absolute top left small tile class="drawer-close-float-btn" @click="isHelpPageDrawerShown = false">
+          <v-icon>mdi-close</v-icon>
+        </v-btn>
+      </v-navigation-drawer>
+      <!-- <<<<<<<<<<<<< 帮助页抽屉 -->
+
+    </v-main>
+  </v-app>
+
+  <jh-toast />
+  <jh-mask />
+  <jh-confirm-dialog />
+</div>
+</script>
+
+<div id="app">
+</div>
+
+
+{% endblock %}
+
+{% block vueScript %}
+{% include 'component/tableTree.html' %}
+
+<!-- 加载页面组件 >>>>>>>>>>>>> -->
+{% include 'common/jianghuJs/fixedTableHeightV4.html' %}
+<!-- <<<<<<<<<<<<< 加载页面组件 -->
+
+<script type="module">
+new Vue({
+  el: '#app',
+  template: '#app-template',
+  vuetify: new Vuetify(),
+  data: () => ({
+    isTableZebraLineShown: true,
+    isMobile: window.innerWidth < 500,
+    isHelpPageDrawerShown: false,
+    // 表格相关数据
+    constantObj: {
+      org: []
+    },
+    searchTreeInput: null,
+    searchInput: null,
+    isTableLoading: true,
+    isTableLoadingMember: true,
+    orgBackend: [],
+    tableTreeData: [],
+    memberHeader: [
+      {text: "职员Id", value: "memberId", width: 120},
+      {text: "职员姓名", value: "memberName", width: 120},
+      {text: "所属组织", value: "orgParentName", width: 250},
+      {text: "组织名称", value: "orgName", width: 120},
+      {text: "职员联系电话", value: "phoneNumber", width: 120},
+      {text: "职员邮箱", value: "email", width: 120},
+      {text: "操作者", value: "operationByUser", width: 120},
+      {text: "操作时间", value: "operationAt", width: 250},
+      {text: '操作', value: 'action', align: 'center', sortable: false, width: window.innerWidth < 500 ? 80 : 120, class: 'fixed', cellClass: 'fixed'},
+    ],
+
+    orgTree: [],
+    openTree: [],
+    memberOrgRoleFullList: [],
+    memberFullList: [],
+    currentOrgId: null,
+    currentPath: null,
+    currentPathName: null,
+    activePathId: [],
+
+    isUpdateMemberItemDrawerShown: false,
+    isAddMemberToOrgDrawerShown: false,
+    orgItemWhenAddMember: {},
+    updateMemberItem: {},
+    updateMemberItemOrg: [],
+  }),
+  computed: {},
+  async created() {
+    await this.doUiAction('getPageData');
+  },
+  watch: {
+    currentPathName() {
+      this.doUiAction('getPageData');
+    },
+  },
+  mounted() {
+  },
+  methods: {
+    async doUiAction(uiActionId, uiActionData) {
+      switch (uiActionId) {
+        case 'getPageData':
+          await this.getOrgData();
+          await this.packConstantObj();
+          await this.packOrgTreeList();
+          await this.getMemberOrgRoleFullList();
+          await this.fromatMemberOrgRoleData();
+          await this.setTableData();
+          await this.getMemberFullList();
+          break;
+        // 新增成员抽屉 >>>>>>>
+        case 'startAddMemberToOrg':
+          await this.prepareOrgWhenAddMember();
+          await this.openAddMemberDrawer();
+          break;
+        case 'addMemberToOrg':
+          await this.doAddMemberToOrg(uiActionData);
+          await this.doUiAction('getPageData');
+          break;
+        case 'removeMemberFromOrg':
+          await this.confirmDeleteItemDialog();
+          await this.doRemoveMemberFromOrg(uiActionData);
+          await this.doUiAction('getPageData');
+          break;
+        // <<<<<<< 新增成员抽屉
+        case 'startUpdateMemberItem':
+          await this.prepareUpdateMemberItemData(uiActionData);
+          await this.prepareOrgFromMember();
+          await this.openUpdateMemberDrawer();
+          break;
+        case 'updateMemberItem':
+          await this.prepareUpdateMemberItemValidate();
+          await this.confirmUpdateItemDialog();
+          await this.doUpdateItem();
+          await this.closeDrawerShow();
+          await this.doUiAction('getPageData');
+          break;
+        case 'deleteMemberFromOrg':
+          await this.confirmDeleteItemDialog();
+          await this.doDeleteMemberFromOrg(uiActionData);
+          await this.doUiAction('getPageData');
+          break;
+        default:
+          console.error("[doUiAction] uiActionId not find", {uiActionId});
+          break;
+      }
+    },
+    // -- uiAction getPageData 获取页面相关数据 >>>>>>>>>>> ----------------------------------------------------
+    async getOrgData() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'orgManagement',
+            actionId: 'selectItemList',
+            orderBy: [{column: 'orgId', order: 'asc'}]
+          }
+        }
+      });
+      const {rows} = result.data.appData.resultData;
+      this.orgBackend = rows;
+      this.isTableLoading = false;
+    },
+    packConstantObj() {
+      const org = this.orgBackend.map(item => {
+        // 获取层级
+        const level = item.orgId.split('-').length;
+        return {text: _.repeat(' - ', level - 1) + item.orgName, value: item.orgId}
+      })
+      this.$set(this.constantObj, 'org', org)
+    },
+    async packOrgTreeList() {
+      this.orgTree = this.orgBackend.filter(item => !item.orgParentId);
+      const buildTree = (target) => {
+        target = target.map(item => {
+          const children = this.orgBackend.filter(child => child.orgParentId === item.orgId);
+          if (!_.isEmpty(children)) {
+            item.children = children;
+            item.children = buildTree(item.children, this.orgBackend);
+          }
+          item.name = item.orgName;
+          return item;
+        })
+        target.name = target.orgName;
+        return target;
+      }
+
+      this.orgTree = buildTree(this.orgTree);
+      if (this.orgTree.length && !this.currentPath) {
+        await this.setCurrentPath(this.orgTree[0]);
+      }
+    },
+    // ✅查询组织和成员完整信息
+    async getMemberOrgRoleFullList() {
+      this.isTableLoading = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+            orderBy: [{column: 'memberId', order: 'desc'}]
+          }
+        }
+      });
+      const {rows} = result.data.appData.resultData;
+      this.memberOrgRoleFullList = rows;
+      this.isTableLoading = false;
+    },
+    fromatMemberOrgRoleData() {
+      const orgData = _.keyBy(this.orgBackend, 'orgNumber');
+      this.memberOrgRoleFullList = _.map(this.memberOrgRoleFullList, item => {
+        const orgParentId = _.split(item.orgParentId || item.orgId, '-');
+        const orgParentName = _.map(orgParentId, id => orgData[id].orgName);
+        return {
+          ...item,
+          orgParentName: item.orgParentId ? `${orgParentName.join('-')}-${item.orgName}` : orgParentName.join('-')
+        }
+      })
+    },
+    setCurrentPath(funObj){
+      const { orgNumber, orgName, orgId }= funObj;
+      const ids = _.split(orgId, '-');
+      this.activePathId = [orgNumber];
+      this.openTree.push(...ids);
+      this.currentPath = funObj;
+      this.currentPathName = orgName;
+    },
+    setTableData(){
+      const childOrg = _.filter(this.orgBackend, item => _.includes(item.orgId, this.currentPath.orgNumber));
+      const childOrgNumber = _.map(childOrg, 'orgNumber');
+      const memberData = _.filter(this.memberOrgRoleFullList, item => _.includes(childOrgNumber, item.orgId));
+      this.tableTreeData = memberData;
+    },
+    // 获取所有成员列表，新增员工抽屉用
+    async getMemberFullList() {
+      this.isTableLoadingMember = true;
+      const result = await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberManagement',
+            actionId: 'selectItemList',
+            actionData: {},
+            where: {},
+          }
+        }
+      });
+      const {rows} = result.data.appData.resultData;
+      this.memberFullList = rows;
+      this.isTableLoadingMember = false;
+    },
+    // -- <<<<<<<<<<< uiAction getPageData ----------------------------------------------------
+    // -- uiAction onTreeChange >>>>>>>>>>> ----------------------------------------------------
+    async onTreeChange(event) {
+      if (event.length === 0) {
+        return;
+      }
+      this.currentPath = _.find(this.orgBackend, {orgNumber: event[0]});
+      this.currentPathName = this.currentPath ? this.currentPath.orgName : '';
+    },
+    onTreeOpen(event){
+      this.openTree = event;
+    },
+    // -- <<<<<<<<<<< uiAction onTreeChange ----------------------------------------------------
+
+    // -- uiAction addMemberToOrg >>>>>>>>>>> ----------------------------------------------------
+    async prepareOrgWhenAddMember() {
+      this.orgItemWhenAddMember = _.cloneDeep(this.currentPath);
+    },
+    async openAddMemberDrawer() {
+      this.isAddMemberToOrgDrawerShown = true;
+    },
+    async doAddMemberToOrg(funObj) {
+      window.vtoast.loading({message: '正在添加', time: -1})
+      const {memberId} = funObj;
+      if (!this.orgItemWhenAddMember.orgId || !memberId) {
+        await window.vtoast.error("操作失败");
+      }
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'insertItem',
+            actionData: {
+              orgId: this.orgItemWhenAddMember.orgId,
+              memberId: memberId
+            }
+          }
+        }
+      })
+      window.vtoast.success("添加成功");
+    },
+    // -- <<<<<<<<<<< uiAction addMemberToOrg ----------------------------------------------------
+
+    // -- uiAction updateMemberItem >>>>>>>>>>> ----------------------------------------------------
+    /**
+     * uiActionId:  prepareUpdateMemberItemValidate
+     * description: ✅修改成员信息表单验证
+     */
+    async prepareUpdateMemberItemValidate() {
+      if (this.$refs.form.validate() === false) {
+        window.vtoast.fail({message: "输入有误, 请检查!"});
+        throw new Error("[prepareUpdateMemberItemValidate] false");
+      }
+    },
+    async prepareUpdateMemberItemData(funObj) {
+      this.updateMemberItem = {...funObj};
+    },
+    // ✅获取员工所在组织
+    async prepareOrgFromMember() {
+      window.vtoast.loading({message: '正在加载成员的组织信息', time: -1})
+      const {rows} = (await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'selectItem',
+            where: {
+              memberId: this.updateMemberItem.memberId
+            }
+          }
+        }
+      })).data.appData.resultData;
+      const org = rows.map(item => item.orgId)
+      this.$set(this.updateMemberItem, 'orgId', org)
+      this.updateMemberItemOrg = org
+      window.vtoast.dismiss();
+    },
+    async openUpdateMemberDrawer() {
+      this.isUpdateMemberItemDrawerShown = true;
+    },
+    async confirmUpdateItemDialog() {
+      if (await window.confirmDialog({title: "修改", content: "确定修改吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    async doUpdateItem() {
+      const {id, orgId, ...data} = this.updateMemberItem;
+      await window.vtoast.loading("修改数据");
+      // 删除组织
+      const delOrg = _.difference(this.updateMemberItemOrg, orgId);
+      if (delOrg.length > 0) {
+        await window.jianghuAxios({
+          data: {
+            appData: {
+              pageId: 'memberOrgRoleManagement',
+              actionId: 'deleteItem',
+              where: {memberId: data.memberId},
+              whereIn: {
+                orgId: delOrg
+              }
+            }
+          }
+        })
+      }
+      // 添加组织
+      const addOrg = _.difference(orgId, this.updateMemberItemOrg);
+      if (addOrg.length > 0) {
+        await Promise.all(addOrg.map(async org => {
+          return await window.jianghuAxios({
+            data: {
+              appData: {
+                pageId: 'memberOrgRoleManagement',
+                actionId: 'insertItem',
+                actionData: {
+                  orgId: org,
+                  memberId: data.memberId
+                }
+              }
+            }
+          })
+        }))
+      }
+      await window.vtoast.success("修改数据成功");
+    },
+
+    async closeDrawerShow() {
+      this.isUpdateMemberItemDrawerShown = false;
+      this.isAddMemberToOrgDrawerShown = false;
+    },
+
+    // -- <<<<<<<<<<< uiAction updateMemberItem ----------------------------------------------------
+
+    // -- uiAction deleteMemberFromOrg >>>>>>>>> ----------------------------------------------------
+    async confirmDeleteItemDialog() {
+      if (await window.confirmDialog({title: "移除", content: "确定从组织中移除该成员吗？"}) === false) {
+        throw new Error("取消");
+      }
+    },
+    // 增加成员抽屉：移除该成员
+    async doRemoveMemberFromOrg(funObj) {
+      window.vtoast.loading({message: '正在移除', time: -1})
+      const {memberId} = funObj;
+      if (!this.orgItemWhenAddMember.orgId || !memberId) {
+        await window.vtoast.error("操作失败");
+      }
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'deleteItem',
+            where: {
+              memberId: memberId,
+              orgId: this.orgItemWhenAddMember.orgId
+            },
+          }
+        }
+      })
+      window.vtoast.success("移除成功")
+    },
+    // 组织成员展示表：删除该成员
+    async doDeleteMemberFromOrg(funObj) {
+      const {memberId, orgId} = funObj;
+      window.vtoast.loading({message: '正在移除', time: -1})
+      await window.jianghuAxios({
+        data: {
+          appData: {
+            pageId: 'memberOrgRoleManagement',
+            actionId: 'deleteItem',
+            actionData: {},
+            where: {
+              memberId,
+              orgId
+            }
+          }
+        }
+      });
+      window.vtoast.success("移除成功")
+    },
+    // -- <<<<<<<<<<< uiAction deleteMemberFromOrg ----------------------------------------------------
+    // 模板方法，检查本成员是否在要加入的组织中
+    checkMemberInOrg(member) {
+      const org = this.orgItemWhenAddMember
+      const res = this.memberOrgRoleFullList.find(o => o.orgId === org.orgId && o.memberId === member.memberId);
+      return !!res;
+    },
+
+  }
+})
+</script>
+
+<style scoped>
+.v-treeview-node__root {
+  cursor: pointer;
+}
+
+table > tbody > tr > td.fixed-expand-1,
+table > thead > tr > th.fixed-expand-1,
+table > tbody > tr > td.fixed-expand-2,
+table > thead > tr > th.fixed-expand-2 {
+  position: sticky !important;
+  position: -webkit-sticky !important;
+  right: 0;
+  z-index: 10;
+  background: white;
+  border: none;
+  box-shadow: none;
+}
+
+table > tbody > tr > td.fixed-expand-2,
+table > thead > tr > th.fixed-expand-2 {
+  right: 58px;
+}
+
+.theme--light.v-data-table .v-row-group__header .v-icon {
+  font-size: 18px;
+}
+
+.theme--light.v-data-table .v-row-group__header {
+  background: #FBFBFB;
+  font-weight: 600;
+}
+
+.theme--light.v-data-table .v-row-group__header ~ tr:not(.v-row-group__header) > td:first-child {
+  padding-left: 40px;
+}
+
+.v-data-table__expanded td:nth-child(1) {
+  width: 0;
+}
+
+.v-data-table > .v-data-table__wrapper tbody tr.v-data-table__expanded__content {
+  box-shadow: none;
+}
+
+</style>
+{% endblock %}
