@@ -460,7 +460,7 @@ new Vue({
       const orgData = _.keyBy(this.orgBackend, 'orgNumber');
       this.memberOrgRoleFullList = _.map(this.memberOrgRoleFullList, item => {
         const orgParentId = _.split(item.orgParentId || item.orgId, '-');
-        const orgParentName = _.map(orgParentId, id => orgData[id].orgName);
+        const orgParentName = _.map(orgParentId, id => (orgData[id]? orgData[id].orgName: ''));
         return {
           ...item,
           orgParentName: item.orgParentId ? `${orgParentName.join('-')}-${item.orgName}` : orgParentName.join('-')
